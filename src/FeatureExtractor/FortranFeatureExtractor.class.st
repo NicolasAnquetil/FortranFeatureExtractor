@@ -1,6 +1,12 @@
 "
-A visitor similar to JsonToIASTVisitor that extracts features from a Fortran JSON AST.
-Currently collects all invocations (function calls and subroutine calls) with their names.
+A visitor that extracts features from a Fortran JSON AST.
+
+To use:
+```
+extractor := FortranFeatureExtractor new.
+extractor visitProgramFile: (NeoJSONReader fromString: '/path/to/tmpJsonImport/src/xyz.json' asFileReference contents).
+extractor invocations.
+```
 "
 Class {
 	#name : 'FortranFeatureExtractor',
