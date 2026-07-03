@@ -8,3 +8,13 @@ Class {
 	#package : 'FeatureExtractor',
 	#tag : 'DataModel'
 }
+
+{ #category : 'accessing' }
+FFEControFlowStatement >> controFlowStatementName [
+	^ controFlowStatementName
+]
+
+{ #category : 'accessing' }
+FFEControFlowStatement >> controFlowStatementName: aString [
+	controFlowStatementName := aString
+]

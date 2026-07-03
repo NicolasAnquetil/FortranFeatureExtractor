@@ -5,14 +5,14 @@ To use:
 ```
 extractor := FortranFeatureExtractor new.
 extractor visitProgramFile: (NeoJSONReader fromString: '/path/to/tmpJsonImport/src/xyz.json' asFileReference contents).
-extractor invocations.
+extractor features.
 ```
 "
 Class {
 	#name : 'FortranFeatureExtractor',
 	#superclass : 'FortranAbstractJsonVisitor',
 	#instVars : [
-		'invocations',
+		'features',
 		'f77sourcefile'
 	],
 	#category : 'FeatureExtractor-Visitor',
@@ -20,10 +20,24 @@ Class {
 	#tag : 'Visitor'
 }
 
+{ #category : 'private' }
+FortranFeatureExtractor >> controlFlowFeatureNamed: aName atLine: aLineNumber [
+	^ FFEControFlowStatement new
+		controFlowStatementName: aName;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'accessing' }
+FortranFeatureExtractor >> features [
+	^ features
+]
+
 { #category : 'initialization' }
 FortranFeatureExtractor >> initialize [
 	super initialize.
-	invocations := OrderedCollection new.
+	features := OrderedCollection new.
 	f77sourcefile := ''
 ]
 
@@ -39,17 +53,39 @@ FortranFeatureExtractor >> invocationFeatureFrom: data [
 		yourself
 ]
 
-{ #category : 'accessing' }
-FortranFeatureExtractor >> invocations [
-	^ invocations
-]
-
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitCallStatement: aCallNode [
 	"Subroutine calls: CALL subName(...)"
 	| data |
 	data := super visitCallStatement: aCallNode.
-	invocations add: (self invocationFeatureFrom: data).
+	features add: (self invocationFeatureFrom: data).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitConditions: aConditionList [
+	"index 1 is the IF branch (already recorded in visitIf:); index 2+ are ELSE IF"
+	aConditionList doWithIndex: [ :aCondition :i |
+		i > 1 ifTrue: [
+			features add: (self controlFlowFeatureNamed: 'ELSE IF'
+				atLine: (self visitSpan: (aCondition first at: #span)) first x) ] ].
+	^ super visitConditions: aConditionList
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitContinueStatement: aContinueStatementNode [
+	| data |
+	data := super visitContinueStatement: aContinueStatementNode.
+	features add: (self controlFlowFeatureNamed: 'CONTINUE' atLine: data first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitDo: aDoNode [
+	| data |
+	data := super visitDo: aDoNode.
+	features add: (self controlFlowFeatureNamed: 'DO' atLine: data first first x).
+	features add: (self controlFlowFeatureNamed: 'END DO' atLine: data first second x).
 	^ data
 ]
 
@@ -58,7 +94,53 @@ FortranFeatureExtractor >> visitFunction_call: aFunctionCallNode [
 	"Function invocations used as expressions: result = funcName(...)"
 	| data |
 	data := super visitFunction_call: aFunctionCallNode.
-	invocations add: (self invocationFeatureFrom: data).
+	features add: (self invocationFeatureFrom: data).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitGotoStatement: aGotoStatementNode [
+	| data |
+	data := super visitGotoStatement: aGotoStatementNode.
+	features add: (self controlFlowFeatureNamed: 'GOTO' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitGoto_computedStatement: aGotoComputedStatementNode [
+	| data |
+	data := super visitGoto_computedStatement: aGotoComputedStatementNode.
+	features add: (self controlFlowFeatureNamed: 'GOTO' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitIf: anIfNode [
+	"Block IF...THEN...[ELSE IF]...[ELSE]...END IF"
+	| data |
+	data := super visitIf: anIfNode.
+	features add: (self controlFlowFeatureNamed: 'IF' atLine: data first first x).
+	(anIfNode at: #blocks ifAbsent: [ nil ]) ifNotNil: [ :blocks |
+		blocks ifNotEmpty: [
+			features add: (self controlFlowFeatureNamed: 'ELSE'
+				atLine: (self visitSpan: (blocks first at: #span)) first x - 1) ] ].
+	features add: (self controlFlowFeatureNamed: 'END IF' atLine: data first second x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitIf_arithmeticStatement: anIfArithmeticStatement [
+	| data |
+	data := super visitIf_arithmeticStatement: anIfArithmeticStatement.
+	features add: (self controlFlowFeatureNamed: 'IF' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitIf_logicalStatement: anIfNode [
+	| data |
+	data := super visitIf_logicalStatement: anIfNode.
+	features add: (self controlFlowFeatureNamed: 'IF' atLine: data first first x).
 	^ data
 ]
 
