@@ -43,6 +43,22 @@ FortranFeatureExtractorTest >> testCharacterDeclaration [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testClose [
+	"      subroutine foo
+      close(10)
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"/Users/meghasudheendran/Desktop/test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:15)","statement":{"anno":[],"span":"(2:7)-(2:15)","specification":{"anno":[],"list":[{"anno":[],"expr":{"anno":[],"span":"(2:13)-(2:14)","tag":"value","value":{"contents":["10",null],"tag":"integer"}},"name":null,"span":"(2:13)-(2:14)"}],"span":"(2:12)-(2:15)"},"tag":"close"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+	self assert: features first class equals: FFEIOStatement . 
+	self assert: features first ioStatementType equals: 'CLOSE' . 
+	
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testContinue [
 	"       subroutine cnti
    10  continue
@@ -403,6 +419,56 @@ FortranFeatureExtractorTest >> testNEExpression [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testOpen [
+	"      subroutine foo
+      OPEN(unit=10, file= 'f.txt')
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:34)","statement":{"anno":[],"span":"(2:7)-(2:34)","specification":{"anno":[],"list":[{"anno":[],"expr":{"anno":[],"span":"(2:17)-(2:18)","tag":"value","value":{"contents":["10",null],"tag":"integer"}},"name":"unit","span":"(2:12)-(2:18)"},{"anno":[],"expr":{"anno":[],"span":"(2:27)-(2:33)","tag":"value","value":{"contents":"f.txt","tag":"string"}},"name":"file","span":"(2:21)-(2:33)"}],"span":"(2:11)-(2:34)"},"tag":"open"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+	self assert: features first class equals: FFEIOStatement . 
+	self assert: features first ioStatementType equals: 'OPEN' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testPrint [
+	"      subroutine foo
+      integer x
+      print *, x
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:15)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:15)-(2:15)","type":"scalar","variable":{"anno":[],"span":"(2:15)-(2:15)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:15)-(2:15)"},"span":"(2:7)-(2:15)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:7)-(2:13)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:7)-(3:16)","statement":{"anno":[],"arguments":{"anno":[],"list":[{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":"x","tag":"variable"}}],"span":"(3:16)-(3:16)"},"format":{"anno":[],"span":"(3:13)-(3:13)","tag":"value","value":{"tag":"star"}},"span":"(3:7)-(3:16)","tag":"print"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(4:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEIOStatement . 
+	self assert: (features detect: [:f | f lineNumber = 3]) ioStatementType equals: 'PRINT' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testRead [
+	"      subroutine foo
+      integer x
+      read(*,*) x
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:15)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:15)-(2:15)","type":"scalar","variable":{"anno":[],"span":"(2:15)-(2:15)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:15)-(2:15)"},"span":"(2:7)-(2:15)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:7)-(2:13)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:7)-(3:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[{"anno":[],"span":"(3:17)-(3:17)","tag":"value","value":{"contents":"x","tag":"variable"}}],"span":"(3:17)-(3:17)"},"format":{"anno":[],"list":[{"anno":[],"expr":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"tag":"star"}},"name":null,"span":"(3:12)-(3:12)"},{"anno":[],"expr":{"anno":[],"span":"(3:14)-(3:14)","tag":"value","value":{"tag":"star"}},"name":null,"span":"(3:14)-(3:14)"}],"span":"(3:11)-(3:15)"},"span":"(3:7)-(3:17)","tag":"read"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(4:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEIOStatement . 
+	self assert: (features detect: [:f | f lineNumber = 3]) ioStatementType equals: 'READ' . 
+	
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testSubtractionExpression [
 	"       subroutine foo
        integer x
@@ -416,6 +482,23 @@ FortranFeatureExtractorTest >> testSubtractionExpression [
 	self assert: features size equals: 2.
 	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
 	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '-' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testWrite [
+	"      subroutine foo
+      integer x
+      write(*,*) x
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:15)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:15)-(2:15)","type":"scalar","variable":{"anno":[],"span":"(2:15)-(2:15)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:15)-(2:15)"},"span":"(2:7)-(2:15)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:7)-(2:13)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:7)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[{"anno":[],"span":"(3:18)-(3:18)","tag":"value","value":{"contents":"x","tag":"variable"}}],"span":"(3:18)-(3:18)"},"format":{"anno":[],"list":[{"anno":[],"expr":{"anno":[],"span":"(3:13)-(3:13)","tag":"value","value":{"tag":"star"}},"name":null,"span":"(3:13)-(3:13)"},{"anno":[],"expr":{"anno":[],"span":"(3:15)-(3:15)","tag":"value","value":{"tag":"star"}},"name":null,"span":"(3:15)-(3:15)"}],"span":"(3:12)-(3:16)"},"span":"(3:7)-(3:18)","tag":"write"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(4:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEIOStatement . 
+	self assert: (features detect: [:f | f lineNumber = 3]) ioStatementType equals: 'WRITE' . 
 	
 ]
 
