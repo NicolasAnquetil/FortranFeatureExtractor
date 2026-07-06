@@ -283,6 +283,42 @@ FortranFeatureExtractorTest >> testIfElseIf [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testInclude [
+	"      subroutine hello( )
+c@_#include ""file.inc""
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"<stdin>"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_#include \"file.inc\"","span":"(2:1)-(2:22)","tag":"comment"}],"name":"hello","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+	self assert: features first class equals: FFEImportStatement . 
+	self assert: features first importName equals: 'file' . 
+	self assert: features first importExtension equals: '.inc' . 
+	
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testIncludeSeg [
+	"      subroutine hello( )
+c@_#include ""file.seg""
+      end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_#include \"file.seg\"","span":"(2:1)-(2:22)","tag":"comment"}],"name":"hello","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+	self assert: features first class equals: FFEImportStatement . 
+	self assert: features first importName equals: 'file' . 
+	self assert: features first importExtension equals: '.seg' . 
+	
+	
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testInvocations [
 	"       subroutine bla
        call blafun
