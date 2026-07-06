@@ -10,6 +10,22 @@ Class {
 }
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testCharacterDeclaration [ 
+	"       subroutine bla
+       character name
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"ifelse.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:21)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:18)-(2:21)","type":"scalar","variable":{"anno":[],"span":"(2:18)-(2:21)","tag":"value","value":{"contents":"name","tag":"variable"}}}],"span":"(2:18)-(2:21)"},"span":"(2:8)-(2:21)","tag":"declaration","type":{"anno":[],"base_type":"character","selector":null,"span":"(2:8)-(2:16)"}},"tag":"statement"}],"name":"bla","options":[null,null],"span":"(1:8)-(3:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+	self assert: features first class equals: FFEDeclaration .
+	self assert: features first declaredName equals: 'name'.
+	self assert: features first declaredType equals: 'CHARACTER'
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testContinue [
 	"       subroutine cnti
    10  continue
@@ -25,6 +41,49 @@ FortranFeatureExtractorTest >> testContinue [
 	continueFeature := features detect: [:f | f lineNumber = 2].
 	
 	self assert: continueFeature class equals: FFEControFlowStatement .
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testDeclarations [ 
+	"       subroutine foo
+       character name
+       integer i
+       real ratio
+       logical status
+       external toto
+       parameter(n=2)
+
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:21)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:18)-(2:21)","type":"scalar","variable":{"anno":[],"span":"(2:18)-(2:21)","tag":"value","value":{"contents":"name","tag":"variable"}}}],"span":"(2:18)-(2:21)"},"span":"(2:8)-(2:21)","tag":"declaration","type":{"anno":[],"base_type":"character","selector":null,"span":"(2:8)-(2:16)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(3:16)-(3:16)","type":"scalar","variable":{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":"i","tag":"variable"}}}],"span":"(3:16)-(3:16)"},"span":"(3:8)-(3:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(3:8)-(3:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(4:8)-(4:17)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(4:13)-(4:17)","type":"scalar","variable":{"anno":[],"span":"(4:13)-(4:17)","tag":"value","value":{"contents":"ratio","tag":"variable"}}}],"span":"(4:13)-(4:17)"},"span":"(4:8)-(4:17)","tag":"declaration","type":{"anno":[],"base_type":"real","selector":null,"span":"(4:8)-(4:11)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(5:8)-(5:21)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(5:16)-(5:21)","type":"scalar","variable":{"anno":[],"span":"(5:16)-(5:21)","tag":"value","value":{"contents":"status","tag":"variable"}}}],"span":"(5:16)-(5:21)"},"span":"(5:8)-(5:21)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(5:8)-(5:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(6:8)-(6:20)","statement":{"anno":[],"span":"(6:8)-(6:20)","tag":"external","vars":{"anno":[],"list":[{"anno":[],"span":"(6:17)-(6:20)","tag":"value","value":{"contents":"toto","tag":"variable"}}],"span":"(6:17)-(6:20)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(7:8)-(7:21)","statement":{"anno":[],"declarators":{"anno":[],"list":[{"anno":[],"initial":{"anno":[],"span":"(7:20)-(7:20)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"length":null,"span":"(7:18)-(7:20)","type":"scalar","variable":{"anno":[],"span":"(7:18)-(7:18)","tag":"value","value":{"contents":"n","tag":"variable"}}}],"span":"(7:18)-(7:20)"},"span":"(7:8)-(7:21)","tag":"parameter"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(9:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 6.
+	self assert: (features detect: [:f | f lineNumber = 2]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 3]) declaredName equals: 'i'.
+	self assert: (features detect: [:f | f lineNumber = 3]) declaredType equals: 'INTEGER'.
+	
+	self assert: (features detect: [:f | f lineNumber = 4]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 4]) declaredName equals: 'ratio'.
+	self assert: (features detect: [:f | f lineNumber = 4]) declaredType equals: 'REAL'.
+	
+	self assert: (features detect: [:f | f lineNumber = 5]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 5]) declaredName equals: 'status'.
+	self assert: (features detect: [:f | f lineNumber = 5]) declaredType equals: 'LOGICAL'.
+	
+	self assert: (features detect: [:f | f lineNumber = 6]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 6]) declaredName equals: 'toto'.
+	self assert: (features detect: [:f | f lineNumber = 6]) declaredType equals: 'EXTERNAL'.
+	
+	self assert: (features detect: [:f | f lineNumber = 7]) class equals: FFEDeclaration.
+	self assert: (features detect: [:f | f lineNumber = 7]) declaredName equals: 'n'.
+	self assert: (features detect: [:f | f lineNumber = 7]) declaredType equals: 'PARAMETER'.
+	
+	
+	
 	
 ]
 
