@@ -53,6 +53,18 @@ FortranFeatureExtractor >> features [
 	^ features
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> importFeatureFrom: anArgument atLine: aLineNumber [
+	| dotIndex |
+	dotIndex := anArgument lastIndexOf: $..
+	^ FFEImportStatement new
+		importName: (anArgument copyFrom: 1 to: dotIndex - 1);
+		importExtension: (anArgument copyFrom: dotIndex to: anArgument size);
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
 { #category : 'initialization' }
 FortranFeatureExtractor >> initialize [
 	super initialize.
@@ -116,6 +128,17 @@ FortranFeatureExtractor >> visitCloseStatement: aCloseStatementNode [
 	| data |
 	data := super visitCloseStatement: aCloseStatementNode.
 	features add: (self ioStatementFeatureNamed: 'CLOSE' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitComment: aCommentNode [
+	| data command |
+	data := super visitComment: aCommentNode.
+	(self isEsopeComment: data second) ifTrue: [
+		command := self esopeCommand: data second.
+		(command size = 2 and: [ command first asLowercase = 'include' ]) ifTrue: [
+			features add: (self importFeatureFrom: command second atLine: data first first x) ] ].
 	^ data
 ]
 
