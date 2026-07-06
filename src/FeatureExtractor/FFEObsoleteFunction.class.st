@@ -8,3 +8,13 @@ Class {
 	#package : 'FeatureExtractor',
 	#tag : 'DataModel'
 }
+
+{ #category : 'accessing' }
+FFEObsoleteFunction >> obsoleteFunctionName [
+	^ obsoleteFunctionName
+]
+
+{ #category : 'accessing' }
+FFEObsoleteFunction >> obsoleteFunctionName: aString [
+	obsoleteFunctionName := aString
+]

@@ -94,6 +94,25 @@ FortranFeatureExtractor >> ioStatementFeatureNamed: aType atLine: aLineNumber [
 ]
 
 { #category : 'private' }
+FortranFeatureExtractor >> obsoleteCallNames [
+	^ #('oooeta' 'actstr' 'desstr')
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor >> obsoleteEsopeCommandNames [
+	^ #('segact' 'segdes')
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor >> obsoleteFunctionFeatureNamed: aName atLine: aLineNumber [
+	^ FFEObsoleteFunction new
+		obsoleteFunctionName: aName;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'private' }
 FortranFeatureExtractor >> operatorSymbolFor: aRawTag [
 	^ (Dictionary newFromPairs: {
 		'lt'. '.LT.'. 'lte'. '.LE.'. 'eq'. '.EQ.'. 'ne'. '.NE.'. 'gt'. '.GT.'. 'gte'. '.GE.'.
@@ -117,9 +136,12 @@ FortranFeatureExtractor >> visitBinary: aBinaryExpressionNode [
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitCallStatement: aCallNode [
 	"Subroutine calls: CALL subName(...)"
-	| data |
+	| data name |
 	data := super visitCallStatement: aCallNode.
 	features add: (self invocationFeatureFrom: data).
+	name := data second second.
+	(self obsoleteCallNames includes: name asLowercase) ifTrue: [
+		features add: (self obsoleteFunctionFeatureNamed: name atLine: data first first x) ].
 	^ data
 ]
 
@@ -138,7 +160,10 @@ FortranFeatureExtractor >> visitComment: aCommentNode [
 	(self isEsopeComment: data second) ifTrue: [
 		command := self esopeCommand: data second.
 		(command size = 2 and: [ command first asLowercase = 'include' ]) ifTrue: [
-			features add: (self importFeatureFrom: command second atLine: data first first x) ] ].
+			features add: (self importFeatureFrom: command second atLine: data first first x) ].
+		(command notEmpty and: [ self obsoleteEsopeCommandNames includes: command first asLowercase ])
+			ifTrue: [
+				features add: (self obsoleteFunctionFeatureNamed: command first atLine: data first first x) ] ].
 	^ data
 ]
 
