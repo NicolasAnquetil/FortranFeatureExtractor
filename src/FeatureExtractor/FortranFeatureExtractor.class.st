@@ -29,6 +29,16 @@ FortranFeatureExtractor >> controlFlowFeatureNamed: aName atLine: aLineNumber [
 		yourself
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> declarationFeatureNamed: aName ofType: aType atLine: aLineNumber [
+	^ FFEDeclaration new
+		declaredName: aName;
+		declaredType: aType asUppercase;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
 { #category : 'accessing' }
 FortranFeatureExtractor >> features [
 	^ features
@@ -81,11 +91,35 @@ FortranFeatureExtractor >> visitContinueStatement: aContinueStatementNode [
 ]
 
 { #category : 'visiting' }
+FortranFeatureExtractor >> visitDeclarationStatement: aDeclarationStatementNode [
+	"CHARACTER/LOGICAL/INTEGER/REAL/... -- one node type, differentiated by base_type"
+	| data baseType declarators |
+	data := super visitDeclarationStatement: aDeclarationStatementNode.
+	baseType := data second second.
+	declarators := data fourth second.
+	declarators do: [ :declarator |
+		features add: (self declarationFeatureNamed: declarator fifth second
+			ofType: baseType atLine: declarator first first x) ].
+	^ data
+]
+
+{ #category : 'visiting' }
 FortranFeatureExtractor >> visitDo: aDoNode [
 	| data |
 	data := super visitDo: aDoNode.
 	features add: (self controlFlowFeatureNamed: 'DO' atLine: data first first x).
 	features add: (self controlFlowFeatureNamed: 'END DO' atLine: data first second x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitExternalStatement: anExternalStatementNode [
+	| data vars |
+	data := super visitExternalStatement: anExternalStatementNode.
+	vars := data second.
+	vars do: [ :aVar |
+		features add: (self declarationFeatureNamed: aVar second
+			ofType: 'EXTERNAL' atLine: aVar first first x) ].
 	^ data
 ]
 
@@ -147,4 +181,15 @@ FortranFeatureExtractor >> visitIf_logicalStatement: anIfNode [
 { #category : 'visiting prog-unit' }
 FortranFeatureExtractor >> visitMiFilename: aString [
 	f77sourcefile := aString
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitParameterStatement: aParameterStatementNode [
+	| data declarators |
+	data := super visitParameterStatement: aParameterStatementNode.
+	declarators := data second second.
+	declarators do: [ :declarator |
+		features add: (self declarationFeatureNamed: declarator fifth second
+			ofType: 'PARAMETER' atLine: declarator first first x) ].
+	^ data
 ]
