@@ -192,7 +192,7 @@ FortranFeatureExtractorTest >> testGTExpression [
 { #category : 'tests' }
 FortranFeatureExtractorTest >> testIf [
 	"       subroutine bla
-       if (x .gt. 0) then
+       if (.true.) then
        call blafun
        end if
        end
@@ -200,7 +200,7 @@ FortranFeatureExtractorTest >> testIf [
 "
 
 	| features ifFeature endIfFeature|
-	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"iftest.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":null,"conditions":[[{"anno":[],"left":{"anno":[],"span":"(2:12)-(2:12)","tag":"value","value":{"contents":"x","tag":"variable"}},"op":{"tag":"gt"},"right":{"anno":[],"span":"(2:19)-(2:19)","tag":"value","value":{"contents":["0",null],"tag":"integer"}},"span":"(2:12)-(2:19)","tag":"binary"},[{"anno":[],"label":null,"span":"(3:8)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:18)-(3:18)"},"function":{"anno":[],"span":"(3:13)-(3:18)","tag":"value","value":{"contents":"blafun","tag":"variable"}},"span":"(3:8)-(3:18)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(4:13)","tag":"if"}],"name":"bla","options":[null,null],"span":"(1:8)-(5:10)","subprograms":null,"tag":"subroutine"}]}'.
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":null,"conditions":[[{"anno":[],"span":"(2:12)-(2:17)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},[{"anno":[],"label":null,"span":"(3:8)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:18)-(3:18)"},"function":{"anno":[],"span":"(3:13)-(3:18)","tag":"value","value":{"contents":"blafun","tag":"variable"}},"span":"(3:8)-(3:18)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(4:13)","tag":"if"}],"name":"bla","options":[null,null],"span":"(1:8)-(5:10)","subprograms":null,"tag":"subroutine"}]}'.
 
 	self assert: features size equals: 3.
 	
@@ -215,7 +215,7 @@ FortranFeatureExtractorTest >> testIf [
 { #category : 'tests' }
 FortranFeatureExtractorTest >> testIfElse [
 	"       subroutine ifelse
-       if (x .gt. 0) then
+       if (.true.) then
        call blafun
        else
        call toto
@@ -224,7 +224,7 @@ FortranFeatureExtractorTest >> testIfElse [
 "
 
 	| features ifFeature endIfFeature elseFeature|
-	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"ifelse.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":[{"anno":[],"label":null,"span":"(5:8)-(5:16)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(5:16)-(5:16)"},"function":{"anno":[],"span":"(5:13)-(5:16)","tag":"value","value":{"contents":"toto","tag":"variable"}},"span":"(5:8)-(5:16)","tag":"call"},"tag":"statement"}],"conditions":[[{"anno":[],"left":{"anno":[],"span":"(2:12)-(2:12)","tag":"value","value":{"contents":"x","tag":"variable"}},"op":{"tag":"gt"},"right":{"anno":[],"span":"(2:19)-(2:19)","tag":"value","value":{"contents":["0",null],"tag":"integer"}},"span":"(2:12)-(2:19)","tag":"binary"},[{"anno":[],"label":null,"span":"(3:8)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:18)-(3:18)"},"function":{"anno":[],"span":"(3:13)-(3:18)","tag":"value","value":{"contents":"blafun","tag":"variable"}},"span":"(3:8)-(3:18)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(6:13)","tag":"if"}],"name":"ifelse","options":[null,null],"span":"(1:8)-(7:10)","subprograms":null,"tag":"subroutine"}]}'.
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":[{"anno":[],"label":null,"span":"(5:8)-(5:16)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(5:16)-(5:16)"},"function":{"anno":[],"span":"(5:13)-(5:16)","tag":"value","value":{"contents":"toto","tag":"variable"}},"span":"(5:8)-(5:16)","tag":"call"},"tag":"statement"}],"conditions":[[{"anno":[],"span":"(2:12)-(2:17)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},[{"anno":[],"label":null,"span":"(3:8)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:18)-(3:18)"},"function":{"anno":[],"span":"(3:13)-(3:18)","tag":"value","value":{"contents":"blafun","tag":"variable"}},"span":"(3:8)-(3:18)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(6:13)","tag":"if"}],"name":"ifelse","options":[null,null],"span":"(1:8)-(7:10)","subprograms":null,"tag":"subroutine"}]}'.
 
 	self assert: features size equals: 5.
 	
@@ -240,9 +240,9 @@ FortranFeatureExtractorTest >> testIfElse [
 { #category : 'tests' }
 FortranFeatureExtractorTest >> testIfElseIf [
 	"       subroutine elseif
-       if (x .gt. 0) then
+       if (.true.) then
        call toto1
-       else if (x .lt. 0) then
+       else if (.false.) then
        call toto2
        else
        call toto3
@@ -251,7 +251,7 @@ FortranFeatureExtractorTest >> testIfElseIf [
 "
 
 	| features ifFeature endIfFeature elseFeature elseifFeature|
-	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"ifelse.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":[{"anno":[],"label":null,"span":"(7:8)-(7:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(7:17)-(7:17)"},"function":{"anno":[],"span":"(7:13)-(7:17)","tag":"value","value":{"contents":"toto3","tag":"variable"}},"span":"(7:8)-(7:17)","tag":"call"},"tag":"statement"}],"conditions":[[{"anno":[],"left":{"anno":[],"span":"(2:12)-(2:12)","tag":"value","value":{"contents":"x","tag":"variable"}},"op":{"tag":"gt"},"right":{"anno":[],"span":"(2:19)-(2:19)","tag":"value","value":{"contents":["0",null],"tag":"integer"}},"span":"(2:12)-(2:19)","tag":"binary"},[{"anno":[],"label":null,"span":"(3:8)-(3:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:17)-(3:17)"},"function":{"anno":[],"span":"(3:13)-(3:17)","tag":"value","value":{"contents":"toto1","tag":"variable"}},"span":"(3:8)-(3:17)","tag":"call"},"tag":"statement"}]],[{"anno":[],"left":{"anno":[],"span":"(4:17)-(4:17)","tag":"value","value":{"contents":"x","tag":"variable"}},"op":{"tag":"lt"},"right":{"anno":[],"span":"(4:24)-(4:24)","tag":"value","value":{"contents":["0",null],"tag":"integer"}},"span":"(4:17)-(4:24)","tag":"binary"},[{"anno":[],"label":null,"span":"(5:8)-(5:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(5:17)-(5:17)"},"function":{"anno":[],"span":"(5:13)-(5:17)","tag":"value","value":{"contents":"toto2","tag":"variable"}},"span":"(5:8)-(5:17)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(8:13)","tag":"if"}],"name":"elseif","options":[null,null],"span":"(1:8)-(9:10)","subprograms":null,"tag":"subroutine"}]}'.
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"blocks":[{"anno":[],"label":null,"span":"(7:8)-(7:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(7:17)-(7:17)"},"function":{"anno":[],"span":"(7:13)-(7:17)","tag":"value","value":{"contents":"toto3","tag":"variable"}},"span":"(7:8)-(7:17)","tag":"call"},"tag":"statement"}],"conditions":[[{"anno":[],"span":"(2:12)-(2:17)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},[{"anno":[],"label":null,"span":"(3:8)-(3:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:17)-(3:17)"},"function":{"anno":[],"span":"(3:13)-(3:17)","tag":"value","value":{"contents":"toto1","tag":"variable"}},"span":"(3:8)-(3:17)","tag":"call"},"tag":"statement"}]],[{"anno":[],"span":"(4:17)-(4:23)","tag":"value","value":{"contents":[false,null],"tag":"logical"}},[{"anno":[],"label":null,"span":"(5:8)-(5:17)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(5:17)-(5:17)"},"function":{"anno":[],"span":"(5:13)-(5:17)","tag":"value","value":{"contents":"toto2","tag":"variable"}},"span":"(5:8)-(5:17)","tag":"call"},"tag":"statement"}]]],"end_label":null,"label":null,"name":null,"span":"(2:8)-(8:13)","tag":"if"}],"name":"elseif","options":[null,null],"span":"(1:8)-(9:10)","subprograms":null,"tag":"subroutine"}]}'.
 
 	self assert: features size equals: 7.
 	
