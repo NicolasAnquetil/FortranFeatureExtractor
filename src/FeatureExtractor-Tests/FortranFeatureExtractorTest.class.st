@@ -10,6 +10,23 @@ Class {
 }
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testAdditionExpression [
+	"       subroutine foo
+       integer x
+       x = 2 + 3
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"ifelse.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:16)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"op":{"tag":"addition"},"right":{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":["3",null],"tag":"integer"}},"span":"(3:12)-(3:16)","tag":"binary"},"span":"(3:8)-(3:16)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '+' . 
+	
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testCharacterDeclaration [ 
 	"       subroutine bla
        character name
@@ -84,6 +101,91 @@ FortranFeatureExtractorTest >> testDeclarations [
 	
 	
 	
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testDivisionExpression [
+	"       subroutine foo
+       integer x
+       x = 2 / 3
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:16)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"op":{"tag":"division"},"right":{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":["3",null],"tag":"integer"}},"span":"(3:12)-(3:16)","tag":"binary"},"span":"(3:8)-(3:16)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '/' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testEQExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .EQ. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"eq"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.EQ.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testExponentiationExpression [
+	"       subroutine foo
+       integer x
+       x = 2 ** 3
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:17)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"op":{"tag":"exponentiation"},"right":{"anno":[],"span":"(3:17)-(3:17)","tag":"value","value":{"contents":["3",null],"tag":"integer"}},"span":"(3:12)-(3:17)","tag":"binary"},"span":"(3:8)-(3:17)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '**' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testGEExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .GE. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"gte"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.GE.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testGTExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .GT. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"gt"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.GT.' . 
 	
 ]
 
@@ -179,6 +281,142 @@ FortranFeatureExtractorTest >> testInvocations [
 	self assert: features anyOne class equals: FFEInvocationFeature.
 	self assert: features anyOne invokedName equals: 'blafun'.
 	self assert: features anyOne lineNumber equals: 2
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testLEExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .LE. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"lte"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.LE.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testLTExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .LT. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"lt"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.LT.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testLogicalAndExpression [
+	"       subroutine foo
+       logical c
+       c = .true. .AND. .false.
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"c","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:31)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:17)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},"op":{"tag":"and"},"right":{"anno":[],"span":"(3:25)-(3:31)","tag":"value","value":{"contents":[false,null],"tag":"logical"}},"span":"(3:12)-(3:31)","tag":"binary"},"span":"(3:8)-(3:31)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"c","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.AND.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testLogicalNOTExpression [
+	"      subroutine foo
+       logical b
+       b = .NOT. .true.
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"b","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:23)","statement":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"span":"(3:18)-(3:23)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},"op":{"tag":"not"},"span":"(3:12)-(3:23)","tag":"unary"},"span":"(3:8)-(3:23)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"b","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.NOT.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testLogicalORExpression [
+	"      subroutine foo
+       logical c
+       c = .true. .OR. .false.
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"c","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:30)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:17)","tag":"value","value":{"contents":[true,null],"tag":"logical"}},"op":{"tag":"or"},"right":{"anno":[],"span":"(3:24)-(3:30)","tag":"value","value":{"contents":[false,null],"tag":"logical"}},"span":"(3:12)-(3:30)","tag":"binary"},"span":"(3:8)-(3:30)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"c","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.OR.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testMultiplicationExpression [
+	"       subroutine foo
+       integer x
+       x = 2 * 3
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:16)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"op":{"tag":"multiplication"},"right":{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":["3",null],"tag":"integer"}},"span":"(3:12)-(3:16)","tag":"binary"},"span":"(3:8)-(3:16)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '*' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testNEExpression [
+	"       subroutine foo
+       logical x
+       x = 1 .NE. 2
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"logical","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:19)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"op":{"tag":"ne"},"right":{"anno":[],"span":"(3:19)-(3:19)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"span":"(3:12)-(3:19)","tag":"binary"},"span":"(3:8)-(3:19)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '.NE.' . 
+	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testSubtractionExpression [
+	"       subroutine foo
+       integer x
+       x = 2 - 3
+       end
+"
+
+	| features |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:16)","statement":{"anno":[],"attributes":null,"declarators":{"anno":[],"list":[{"anno":[],"initial":null,"length":null,"span":"(2:16)-(2:16)","type":"scalar","variable":{"anno":[],"span":"(2:16)-(2:16)","tag":"value","value":{"contents":"x","tag":"variable"}}}],"span":"(2:16)-(2:16)"},"span":"(2:8)-(2:16)","tag":"declaration","type":{"anno":[],"base_type":"integer","selector":null,"span":"(2:8)-(2:14)"}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:16)","statement":{"anno":[],"expression":{"anno":[],"left":{"anno":[],"span":"(3:12)-(3:12)","tag":"value","value":{"contents":["2",null],"tag":"integer"}},"op":{"tag":"subtraction"},"right":{"anno":[],"span":"(3:16)-(3:16)","tag":"value","value":{"contents":["3",null],"tag":"integer"}},"span":"(3:12)-(3:16)","tag":"binary"},"span":"(3:8)-(3:16)","tag":"assign_expression","target":{"anno":[],"span":"(3:8)-(3:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEExpression . 
+	self assert: (features detect: [:f | f lineNumber = 3]) operator equals: '-' . 
+	
 ]
 
 { #category : 'tests' }
