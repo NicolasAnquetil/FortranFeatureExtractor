@@ -455,6 +455,49 @@ FortranFeatureExtractorTest >> testNEExpression [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testObsoleteCall [
+	"       subroutine foo
+       call oooeta(lib)
+       end
+"
+
+	| features invocation obsolete |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:22)","statement":{"anno":[],"arguments":{"anno":[],"list":[{"anno":[],"expr":{"contents":{"anno":[],"span":"(2:19)-(2:21)","tag":"value","value":{"contents":"lib","tag":"variable"}},"tag":"expr"},"name":null,"span":"(2:19)-(2:21)"}],"span":"(2:18)-(2:22)"},"function":{"anno":[],"span":"(2:12)-(2:17)","tag":"value","value":{"contents":"oooeta","tag":"variable"}},"span":"(2:7)-(2:22)","tag":"call"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+
+	invocation := features detect: [:f | f class = FFEInvocationFeature].
+	obsolete := features detect: [:f | f class = FFEObsoleteFunction].
+
+	self assert: invocation invokedName equals: 'oooeta'.
+	self assert: obsolete obsoleteFunctionName equals: 'oooeta'.
+	self assert: obsolete lineNumber equals: 2.
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testObsoleteEsopeCommands [
+	"       subroutine foo
+c@_    segact, lb
+c@_    segdes, lb*MOD
+       end
+"
+
+	| features segactFeature segdesFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_    segact, lb","span":"(2:1)-(2:19)","tag":"comment"},{"anno":[],"comment":"@_    segdes, lb*MOD","span":"(3:1)-(3:23)","tag":"comment"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+
+	segactFeature := features detect: [:f | f lineNumber = 2].
+	segdesFeature := features detect: [:f | f lineNumber = 3].
+
+	self assert: segactFeature class equals: FFEObsoleteFunction.
+	self assert: segactFeature obsoleteFunctionName equals: 'segact'.
+
+	self assert: segdesFeature class equals: FFEObsoleteFunction.
+	self assert: segdesFeature obsoleteFunctionName equals: 'segdes'.
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testOpen [
 	"      subroutine foo
       OPEN(unit=10, file= 'f.txt')
