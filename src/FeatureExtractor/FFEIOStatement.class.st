@@ -8,3 +8,13 @@ Class {
 	#package : 'FeatureExtractor',
 	#tag : 'DataModel'
 }
+
+{ #category : 'accessing' }
+FFEIOStatement >> ioStatementType [
+	^ ioStatementType
+]
+
+{ #category : 'accessing' }
+FFEIOStatement >> ioStatementType: aString [
+	ioStatementType := aString
+]

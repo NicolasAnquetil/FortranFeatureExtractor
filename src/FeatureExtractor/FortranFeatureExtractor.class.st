@@ -73,6 +73,15 @@ FortranFeatureExtractor >> invocationFeatureFrom: data [
 ]
 
 { #category : 'private' }
+FortranFeatureExtractor >> ioStatementFeatureNamed: aType atLine: aLineNumber [
+	^ FFEIOStatement new
+		ioStatementType: aType;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'private' }
 FortranFeatureExtractor >> operatorSymbolFor: aRawTag [
 	^ (Dictionary newFromPairs: {
 		'lt'. '.LT.'. 'lte'. '.LE.'. 'eq'. '.EQ.'. 'ne'. '.NE.'. 'gt'. '.GT.'. 'gte'. '.GE.'.
@@ -99,6 +108,14 @@ FortranFeatureExtractor >> visitCallStatement: aCallNode [
 	| data |
 	data := super visitCallStatement: aCallNode.
 	features add: (self invocationFeatureFrom: data).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitCloseStatement: aCloseStatementNode [
+	| data |
+	data := super visitCloseStatement: aCloseStatementNode.
+	features add: (self ioStatementFeatureNamed: 'CLOSE' atLine: data first first x).
 	^ data
 ]
 
@@ -214,6 +231,14 @@ FortranFeatureExtractor >> visitMiFilename: aString [
 ]
 
 { #category : 'visiting' }
+FortranFeatureExtractor >> visitOpenStatement: anOpenStatement [
+	| data |
+	data := super visitOpenStatement: anOpenStatement.
+	features add: (self ioStatementFeatureNamed: 'OPEN' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
 FortranFeatureExtractor >> visitParameterStatement: aParameterStatementNode [
 	| data declarators |
 	data := super visitParameterStatement: aParameterStatementNode.
@@ -225,6 +250,30 @@ FortranFeatureExtractor >> visitParameterStatement: aParameterStatementNode [
 ]
 
 { #category : 'visiting' }
+FortranFeatureExtractor >> visitPrintStatement: aPrintStatementNode [
+	| data |
+	data := super visitPrintStatement: aPrintStatementNode.
+	features add: (self ioStatementFeatureNamed: 'PRINT' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitRead2Statement: aStatementNode [
+	| data |
+	data := super visitRead2Statement: aStatementNode.
+	features add: (self ioStatementFeatureNamed: 'READ' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitReadStatement: aReadStatementNode [
+	| data |
+	data := super visitReadStatement: aReadStatementNode.
+	features add: (self ioStatementFeatureNamed: 'READ' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
 FortranFeatureExtractor >> visitUnary: aUnaryNode [
 	| opTag data symbol |
 	opTag := (aUnaryNode at: 'op') at: 'tag'.
@@ -232,5 +281,13 @@ FortranFeatureExtractor >> visitUnary: aUnaryNode [
 	symbol := self operatorSymbolFor: opTag.
 	symbol ifNotNil: [
 		features add: (self expressionFeatureNamed: symbol atLine: data first first x) ].
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitWriteStatement: aWriteStatementNode [
+	| data |
+	data := super visitWriteStatement: aWriteStatementNode.
+	features add: (self ioStatementFeatureNamed: 'WRITE' atLine: data first first x).
 	^ data
 ]
