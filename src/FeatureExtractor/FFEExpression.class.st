@@ -8,3 +8,13 @@ Class {
 	#package : 'FeatureExtractor',
 	#tag : 'DataModel'
 }
+
+{ #category : 'accessing' }
+FFEExpression >> operator [
+	^ operator
+]
+
+{ #category : 'accessing' }
+FFEExpression >> operator: aString [
+	operator := aString
+]

@@ -39,6 +39,15 @@ FortranFeatureExtractor >> declarationFeatureNamed: aName ofType: aType atLine: 
 		yourself
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> expressionFeatureNamed: aSymbol atLine: aLineNumber [
+	^ FFEExpression new
+		operator: aSymbol;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
 { #category : 'accessing' }
 FortranFeatureExtractor >> features [
 	^ features
@@ -61,6 +70,27 @@ FortranFeatureExtractor >> invocationFeatureFrom: data [
 		filename: f77sourcefile;
 		invokedName: data second second;
 		yourself
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor >> operatorSymbolFor: aRawTag [
+	^ (Dictionary newFromPairs: {
+		'lt'. '.LT.'. 'lte'. '.LE.'. 'eq'. '.EQ.'. 'ne'. '.NE.'. 'gt'. '.GT.'. 'gte'. '.GE.'.
+		'and'. '.AND.'. 'or'. '.OR.'. 'not'. '.NOT.'.
+		'exponentiation'. '**'. 'multiplication'. '*'. 'division'. '/'.
+		'subtraction'. '-'. 'addition'. '+'. 'minus'. '-'
+	}) at: aRawTag ifAbsent: [ nil ]
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitBinary: aBinaryExpressionNode [
+	| opTag data symbol |
+	opTag := (aBinaryExpressionNode at: 'op') at: 'tag'.
+	data := super visitBinary: aBinaryExpressionNode.
+	symbol := self operatorSymbolFor: opTag.
+	symbol ifNotNil: [
+		features add: (self expressionFeatureNamed: symbol atLine: data first first x) ].
+	^ data
 ]
 
 { #category : 'visiting' }
@@ -191,5 +221,16 @@ FortranFeatureExtractor >> visitParameterStatement: aParameterStatementNode [
 	declarators do: [ :declarator |
 		features add: (self declarationFeatureNamed: declarator fifth second
 			ofType: 'PARAMETER' atLine: declarator first first x) ].
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitUnary: aUnaryNode [
+	| opTag data symbol |
+	opTag := (aUnaryNode at: 'op') at: 'tag'.
+	data := super visitUnary: aUnaryNode.
+	symbol := self operatorSymbolFor: opTag.
+	symbol ifNotNil: [
+		features add: (self expressionFeatureNamed: symbol atLine: data first first x) ].
 	^ data
 ]
