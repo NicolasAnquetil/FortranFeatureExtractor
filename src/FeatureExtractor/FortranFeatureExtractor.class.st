@@ -122,6 +122,16 @@ FortranFeatureExtractor >> operatorSymbolFor: aRawTag [
 	}) at: aRawTag ifAbsent: [ nil ]
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> procedureFeatureNamed: aName ofType: aType atLine: aLineNumber [
+	^ FFEProcedureDefinition new
+		procedureName: aName;
+		procedureType: aType;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitBinary: aBinaryExpressionNode [
 	| opTag data symbol |
@@ -215,6 +225,14 @@ FortranFeatureExtractor >> visitExternalStatement: anExternalStatementNode [
 	vars do: [ :aVar |
 		features add: (self declarationFeatureNamed: aVar second
 			ofType: 'EXTERNAL' atLine: aVar first first x) ].
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitFunctionWithBlocks: aFunctionNode [
+	| data |
+	data := super visitFunctionWithBlocks: aFunctionNode.
+	features add: (self procedureFeatureNamed: data second ofType: 'FUNCTION' atLine: data first first x).
 	^ data
 ]
 
@@ -318,6 +336,14 @@ FortranFeatureExtractor >> visitReadStatement: aReadStatementNode [
 	| data |
 	data := super visitReadStatement: aReadStatementNode.
 	features add: (self ioStatementFeatureNamed: 'READ' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitSubroutine: aSubroutineNode [
+	| data |
+	data := super visitSubroutine: aSubroutineNode.
+	features add: (self procedureFeatureNamed: data second ofType: 'SUBROUTINE' atLine: data first first x).
 	^ data
 ]
 
