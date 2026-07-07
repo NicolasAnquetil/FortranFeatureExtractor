@@ -583,6 +583,34 @@ FortranFeatureExtractorTest >> testRead [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testSegmentFunctionCall [
+	"       subroutine foo
+       x = mypnt(lib, 1)
+       call blafun
+       end
+"
+
+	| features mypntFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:25)","statement":{"anno":[],"expression":{"anno":[],"arguments":{"anno":[],"list":[{"anno":[],"expr":{"contents":{"anno":[],"span":"(2:19)-(2:21)","tag":"value","value":{"contents":"lib","tag":"variable"}},"tag":"expr"},"name":null,"span":"(2:19)-(2:21)"},{"anno":[],"expr":{"contents":{"anno":[],"span":"(2:24)-(2:24)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"tag":"expr"},"name":null,"span":"(2:24)-(2:24)"}],"span":"(2:18)-(2:25)"},"function":{"anno":[],"span":"(2:12)-(2:17)","tag":"value","value":{"contents":"mypnt","tag":"variable"}},"span":"(2:12)-(2:25)","tag":"function_call"},"span":"(2:8)-(2:25)","tag":"assign_expression","target":{"anno":[],"span":"(2:8)-(2:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"},{"anno":[],"label":null,"span":"(3:8)-(3:18)","statement":{"anno":[],"arguments":{"anno":[],"list":[],"span":"(3:18)-(3:18)"},"function":{"anno":[],"span":"(3:13)-(3:18)","tag":"value","value":{"contents":"blafun","tag":"variable"}},"span":"(3:8)-(3:18)","tag":"call"},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: (features count: [:f | f class = FFESegmentFunctionCall]) equals: 1.
+
+	mypntFeature := features detect: [:f | f class = FFESegmentFunctionCall].
+	self assert: mypntFeature targetName equals: 'mypnt'.
+	self assert: mypntFeature lineNumber equals: 2.
+
+	"arguments is a collection of {argSpan. {valueSpan. valueString}} pairs -- dig into the
+	 2nd-of-2nd slot to reach the actual argument value"
+	self assert: mypntFeature arguments size equals: 2.
+	self assert: (mypntFeature arguments first) second second equals: 'lib'.
+	self assert: (mypntFeature arguments second) second second equals: '1'.
+
+	"blafun is not mypnt and must not produce a FFESegmentFunctionCall"
+	self assert: (features anySatisfy: [:f | f class = FFEInvocationFeature and: [f invokedName = 'blafun']]).
+	self deny: (features anySatisfy: [:f | f class = FFESegmentFunctionCall and: [f targetName = 'blafun']]).
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testSegmentInstructionFeature [
 	"       subroutine foo
 c@_    segini, bk
