@@ -171,6 +171,24 @@ FortranFeatureExtractorTest >> testExponentiationExpression [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testFunctionDefinition [
+	"       integer function foo()
+       end
+"
+
+	| features feature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[],"name":"foo","result":null,"span":"(1:8)-(2:10)","subprograms":null,"tag":"function","type":{"anno":[],"base_type":"integer","selector":null,"span":"(1:8)-(1:14)"}}]}'.
+
+	self assert: features size equals: 1.
+
+	feature := features first.
+	self assert: feature class equals: FFEProcedureDefinition.
+	self assert: feature procedureName equals: 'foo'.
+	self assert: feature procedureType equals: 'FUNCTION'.
+	self assert: feature lineNumber equals: 1.
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testGEExpression [
 	"       subroutine foo
        logical x
@@ -544,6 +562,24 @@ FortranFeatureExtractorTest >> testRead [
 	self assert: (features detect: [:f | f lineNumber = 3]) class equals: FFEIOStatement . 
 	self assert: (features detect: [:f | f lineNumber = 3]) ioStatementType equals: 'READ' . 
 	
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testSubroutineDefinition [
+	"       subroutine foo
+       end
+"
+
+	| features feature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[],"name":"foo","options":[null,null],"span":"(1:8)-(2:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 1.
+
+	feature := features first.
+	self assert: feature class equals: FFEProcedureDefinition.
+	self assert: feature procedureName equals: 'foo'.
+	self assert: feature procedureType equals: 'SUBROUTINE'.
+	self assert: feature lineNumber equals: 1.
 ]
 
 { #category : 'tests' }
