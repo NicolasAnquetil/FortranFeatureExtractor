@@ -531,6 +531,24 @@ FortranFeatureExtractorTest >> testOpen [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testPointeurSegment [
+	"       subroutine foo
+c@_    pointeur lb.tlib
+       end
+"
+
+	| features feature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_    pointeur lb.tlib","span":"(2:1)-(2:23)","tag":"comment"}],"name":"foo","options":[null,null],"span":"(1:8)-(3:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: features size equals: 2.
+
+	feature := features detect: [:f | f class = FFESegment].
+	self assert: feature segmentName equals: 'pointeur'.
+	self assert: feature segmentType equals: 'lb.tlib'.
+	self assert: feature lineNumber equals: 2.
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testPrint [
 	"      subroutine foo
       integer x
