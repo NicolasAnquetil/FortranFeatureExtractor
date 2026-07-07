@@ -502,7 +502,7 @@ c@_    segdes, lb*MOD
 	| features segactFeature segdesFeature |
 	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_    segact, lb","span":"(2:1)-(2:19)","tag":"comment"},{"anno":[],"comment":"@_    segdes, lb*MOD","span":"(3:1)-(3:23)","tag":"comment"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
 
-	self assert: features size equals: 3.
+	self assert: features size equals: 5.
 
 	segactFeature := features detect: [:f | f lineNumber = 2].
 	segdesFeature := features detect: [:f | f lineNumber = 3].
