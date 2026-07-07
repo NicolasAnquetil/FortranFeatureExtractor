@@ -583,6 +583,29 @@ FortranFeatureExtractorTest >> testRead [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testSegmentInstructionFeature [
+	"       subroutine foo
+c@_    segini, bk
+c@_    segact, lb
+       end
+"
+
+	| features seginiFeature segactInstrFeature segactObsoleteFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_    segini, bk","span":"(2:1)-(2:19)","tag":"comment"},{"anno":[],"comment":"@_    segact, lb","span":"(3:1)-(3:19)","tag":"comment"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	seginiFeature := features detect: [:f | f class = FFESegmentInstruction and: [f lineNumber = 2]].
+	self assert: seginiFeature invokedSegmentFunctionName equals: 'segini'.
+
+	"segact must count both as an obsolete function and as a segment instruction (additive)"
+	segactObsoleteFeature := features detect: [:f | f class = FFEObsoleteFunction and: [f lineNumber = 3]].
+	segactInstrFeature := features detect: [:f | f class = FFESegmentInstruction and: [f lineNumber = 3]].
+	self assert: segactObsoleteFeature obsoleteFunctionName equals: 'segact'.
+	self assert: segactInstrFeature invokedSegmentFunctionName equals: 'segact'.
+
+	self assert: (features count: [:f | f class = FFESegmentInstruction]) equals: 2.
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testSubroutineDefinition [
 	"       subroutine foo
        end
