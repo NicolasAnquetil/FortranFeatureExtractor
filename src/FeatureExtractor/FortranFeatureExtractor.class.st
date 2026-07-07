@@ -143,6 +143,21 @@ FortranFeatureExtractor >> segmentFeatureFrom: anArgument atLine: aLineNumber [
 ]
 
 { #category : 'private' }
+FortranFeatureExtractor >> segmentFunctionCallFeatureFrom: data [
+	^ FFESegmentFunctionCall new
+		targetName: data second second;
+		arguments: data third;
+		lineNumber: data first first x;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor >> segmentFunctionCallNames [
+	^ #('mypnt')
+]
+
+{ #category : 'private' }
 FortranFeatureExtractor >> segmentInstructionFeatureNamed: aName atLine: aLineNumber [
 	^ FFESegmentInstruction new
 		invokedSegmentFunctionName: aName;
@@ -176,6 +191,8 @@ FortranFeatureExtractor >> visitCallStatement: aCallNode [
 	name := data second second.
 	(self obsoleteCallNames includes: name asLowercase) ifTrue: [
 		features add: (self obsoleteFunctionFeatureNamed: name atLine: data first first x) ].
+	(self segmentFunctionCallNames includes: name asLowercase) ifTrue: [
+		features add: (self segmentFunctionCallFeatureFrom: data) ].
 	^ data
 ]
 
@@ -268,9 +285,12 @@ FortranFeatureExtractor >> visitFunctionWithBlocks: aFunctionNode [
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitFunction_call: aFunctionCallNode [
 	"Function invocations used as expressions: result = funcName(...)"
-	| data |
+	| data name |
 	data := super visitFunction_call: aFunctionCallNode.
 	features add: (self invocationFeatureFrom: data).
+	name := data second second.
+	(self segmentFunctionCallNames includes: name asLowercase) ifTrue: [
+		features add: (self segmentFunctionCallFeatureFrom: data) ].
 	^ data
 ]
 
