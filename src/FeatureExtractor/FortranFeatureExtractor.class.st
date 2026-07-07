@@ -132,6 +132,16 @@ FortranFeatureExtractor >> procedureFeatureNamed: aName ofType: aType atLine: aL
 		yourself
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> segmentFeatureFrom: anArgument atLine: aLineNumber [
+	^ FFESegment new
+		segmentName: 'pointeur';
+		segmentType: anArgument;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitBinary: aBinaryExpressionNode [
 	| opTag data symbol |
@@ -173,7 +183,9 @@ FortranFeatureExtractor >> visitComment: aCommentNode [
 			features add: (self importFeatureFrom: command second atLine: data first first x) ].
 		(command notEmpty and: [ self obsoleteEsopeCommandNames includes: command first asLowercase ])
 			ifTrue: [
-				features add: (self obsoleteFunctionFeatureNamed: command first atLine: data first first x) ] ].
+				features add: (self obsoleteFunctionFeatureNamed: command first atLine: data first first x) ].
+		(command size = 2 and: [ command first asLowercase = 'pointeur' ]) ifTrue: [
+			features add: (self segmentFeatureFrom: command second atLine: data first first x) ] ].
 	^ data
 ]
 

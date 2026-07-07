@@ -9,3 +9,23 @@ Class {
 	#package : 'FeatureExtractor',
 	#tag : 'DataModel'
 }
+
+{ #category : 'accessing' }
+FFESegment >> segmentName [
+	^ segmentName
+]
+
+{ #category : 'accessing' }
+FFESegment >> segmentName: aString [
+	segmentName := aString
+]
+
+{ #category : 'accessing' }
+FFESegment >> segmentType [
+	^ segmentType
+]
+
+{ #category : 'accessing' }
+FFESegment >> segmentType: aString [
+	segmentType := aString
+]
