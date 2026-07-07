@@ -142,6 +142,20 @@ FortranFeatureExtractor >> segmentFeatureFrom: anArgument atLine: aLineNumber [
 		yourself
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> segmentInstructionFeatureNamed: aName atLine: aLineNumber [
+	^ FFESegmentInstruction new
+		invokedSegmentFunctionName: aName;
+		lineNumber: aLineNumber;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor >> segmentInstructionNames [
+	^ #('segini' 'segsup' 'segdes' 'segact' 'segadj')
+]
+
 { #category : 'visiting' }
 FortranFeatureExtractor >> visitBinary: aBinaryExpressionNode [
 	| opTag data symbol |
@@ -185,7 +199,10 @@ FortranFeatureExtractor >> visitComment: aCommentNode [
 			ifTrue: [
 				features add: (self obsoleteFunctionFeatureNamed: command first atLine: data first first x) ].
 		(command size = 2 and: [ command first asLowercase = 'pointeur' ]) ifTrue: [
-			features add: (self segmentFeatureFrom: command second atLine: data first first x) ] ].
+			features add: (self segmentFeatureFrom: command second atLine: data first first x) ].
+		(command notEmpty and: [ self segmentInstructionNames includes: command first asLowercase ])
+			ifTrue: [
+				features add: (self segmentInstructionFeatureNamed: command first atLine: data first first x) ] ].
 	^ data
 ]
 
