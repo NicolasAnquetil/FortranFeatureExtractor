@@ -13,7 +13,9 @@ Class {
 	#superclass : 'FortranAbstractJsonVisitor',
 	#instVars : [
 		'features',
-		'f77sourcefile'
+		'f77sourcefile',
+		'isAssignmentTarget',
+		'isDerefSubscripted'
 	],
 	#category : 'FeatureExtractor-Visitor',
 	#package : 'FeatureExtractor',
@@ -54,6 +56,18 @@ FortranFeatureExtractor >> features [
 ]
 
 { #category : 'private' }
+FortranFeatureExtractor >> getSizeFeatureFrom: derefData index: anIndexOrNil accessKind: aSymbol [
+	^ FFEESOPEMemberAccess new
+		baseName: derefData second second;
+		memberName: derefData third second;
+		index: anIndexOrNil;
+		accessKind: aSymbol;
+		lineNumber: derefData first first x;
+		filename: f77sourcefile;
+		yourself
+]
+
+{ #category : 'private' }
 FortranFeatureExtractor >> importFeatureFrom: anArgument atLine: aLineNumber [
 	| dotIndex |
 	dotIndex := anArgument lastIndexOf: $..
@@ -65,11 +79,21 @@ FortranFeatureExtractor >> importFeatureFrom: anArgument atLine: aLineNumber [
 		yourself
 ]
 
+{ #category : 'private' }
+FortranFeatureExtractor >> indexStringFrom: indicesArray [
+	| val |
+	indicesArray isEmpty ifTrue: [ ^ nil ].
+	val := indicesArray first second second.
+	^ val isString ifTrue: [ val ] ifFalse: [ nil ]
+]
+
 { #category : 'initialization' }
 FortranFeatureExtractor >> initialize [
 	super initialize.
 	features := OrderedCollection new.
-	f77sourcefile := ''
+	f77sourcefile := ''.
+	isAssignmentTarget := false.
+	isDerefSubscripted := false
 ]
 
 { #category : 'private' }
@@ -255,6 +279,17 @@ FortranFeatureExtractor >> visitDeclarationStatement: aDeclarationStatementNode 
 ]
 
 { #category : 'visiting' }
+FortranFeatureExtractor >> visitDeref: aDerefNode [
+	| data kind |
+	kind := isAssignmentTarget ifTrue: [ #write ] ifFalse: [ #read ].
+	isAssignmentTarget := false.
+	data := super visitDeref: aDerefNode.
+	isDerefSubscripted ifFalse: [
+		features add: (self getSizeFeatureFrom: data index: nil accessKind: kind) ].
+	^ data
+]
+
+{ #category : 'visiting' }
 FortranFeatureExtractor >> visitDo: aDoNode [
 	| data |
 	data := super visitDo: aDoNode.
@@ -393,6 +428,31 @@ FortranFeatureExtractor >> visitSubroutine: aSubroutineNode [
 	| data |
 	data := super visitSubroutine: aSubroutineNode.
 	features add: (self procedureFeatureNamed: data second ofType: 'SUBROUTINE' atLine: data first first x).
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitSubscript: aSubscriptNode [
+	| data rawExpressionTag previousFlag kind |
+	rawExpressionTag := (aSubscriptNode at: 'expression') at: 'tag' ifAbsent: [ nil ].
+	kind := isAssignmentTarget ifTrue: [ #write ] ifFalse: [ #read ].
+	isAssignmentTarget := false.
+	previousFlag := isDerefSubscripted.
+	(rawExpressionTag = 'deref') ifTrue: [ isDerefSubscripted := true ].
+	data := super visitSubscript: aSubscriptNode.
+	isDerefSubscripted := previousFlag.
+	(rawExpressionTag = 'deref') ifTrue: [
+		features add: (self getSizeFeatureFrom: data second
+			index: (self indexStringFrom: data third) accessKind: kind) ].
+	^ data
+]
+
+{ #category : 'visiting' }
+FortranFeatureExtractor >> visitTarget: aTargetNode [
+	| data |
+	isAssignmentTarget := true.
+	data := super visitTarget: aTargetNode.
+	isAssignmentTarget := false.
 	^ data
 ]
 
