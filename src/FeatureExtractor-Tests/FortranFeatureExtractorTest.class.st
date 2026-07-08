@@ -154,6 +154,87 @@ FortranFeatureExtractorTest >> testEQExpression [
 ]
 
 { #category : 'tests' }
+FortranFeatureExtractorTest >> testESOPEMemberAccessIndexed [
+	"       subroutine foo
+       y = lb.bstatu(ibk)
+       end
+"
+
+	| features indexedFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:25)","statement":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"span":"(2:12)-(2:13)","tag":"value","value":{"contents":"lb","tag":"variable"}},"field":{"anno":[],"span":"(2:15)-(2:20)","tag":"value","value":{"contents":"bstatu","tag":"variable"}},"span":"(2:12)-(2:20)","tag":"deref"},"indices":{"anno":[],"list":[{"anno":[],"index":{"anno":[],"span":"(2:22)-(2:24)","tag":"value","value":{"contents":"ibk","tag":"variable"}},"name":null,"span":"(2:22)-(2:24)","tag":"single"}],"span":"(2:22)-(2:24)"},"span":"(2:12)-(2:25)","tag":"subscript"},"span":"(2:8)-(2:25)","tag":"assign_expression","target":{"anno":[],"span":"(2:8)-(2:8)","tag":"value","value":{"contents":"y","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(3:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: (features count: [:f | f class = FFEESOPEMemberAccess]) equals: 1.
+
+	
+
+	indexedFeature := features detect: [:f | f class = FFEESOPEMemberAccess and: [f lineNumber = 2]].
+	self assert: indexedFeature baseName equals: 'lb'.
+	self assert: indexedFeature memberName equals: 'bstatu'.
+	self assert: indexedFeature index equals: 'ibk'.
+	self assert: indexedFeature accessKind equals: #read.
+
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testESOPEMemberAccessSizeQuery [
+	"       subroutine foo
+       urcnt = lb.uref(S__/1)
+       end
+"
+"fortran-src-extras serialize -t json -v77l encode test.f"
+
+	| features feature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:7)-(2:28)","statement":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"span":"(2:15)-(2:16)","tag":"value","value":{"contents":"lb","tag":"variable"}},"field":{"anno":[],"span":"(2:18)-(2:21)","tag":"value","value":{"contents":"uref","tag":"variable"}},"span":"(2:15)-(2:21)","tag":"deref"},"indices":{"anno":[],"list":[{"anno":[],"index":{"anno":[],"left":{"anno":[],"span":"(2:23)-(2:25)","tag":"value","value":{"contents":"s__","tag":"variable"}},"op":{"tag":"division"},"right":{"anno":[],"span":"(2:27)-(2:27)","tag":"value","value":{"contents":["1",null],"tag":"integer"}},"span":"(2:23)-(2:27)","tag":"binary"},"name":null,"span":"(2:23)-(2:27)","tag":"single"}],"span":"(2:23)-(2:27)"},"span":"(2:15)-(2:28)","tag":"subscript"},"span":"(2:7)-(2:28)","tag":"assign_expression","target":{"anno":[],"span":"(2:7)-(2:11)","tag":"value","value":{"contents":"urcnt","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:7)-(3:9)","subprograms":null,"tag":"subroutine"}]}'.
+
+	feature := features detect: [:f | f class = FFEESOPEMemberAccess].
+	self assert: feature baseName equals: 'lb'.
+	self assert: feature memberName equals: 'uref'.
+	self assert: feature index isNil.
+	self assert: feature accessKind equals: #read.
+
+	self assert: (features count: [:f | f class = FFEESOPEMemberAccess]) equals: 1.
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testESOPEMemberAccessWrite [
+	"       subroutine foo
+       lb.bstatu(ibk) = .false.
+       end
+"
+
+	| features writeFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:31)","statement":{"anno":[],"expression":{"anno":[],"span":"(2:25)-(2:31)","tag":"value","value":{"contents":[false,null],"tag":"logical"}},"span":"(2:8)-(2:31)","tag":"assign_expression","target":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"span":"(2:8)-(2:9)","tag":"value","value":{"contents":"lb","tag":"variable"}},"field":{"anno":[],"span":"(2:11)-(2:16)","tag":"value","value":{"contents":"bstatu","tag":"variable"}},"span":"(2:8)-(2:16)","tag":"deref"},"indices":{"anno":[],"list":[{"anno":[],"index":{"anno":[],"span":"(2:18)-(2:20)","tag":"value","value":{"contents":"ibk","tag":"variable"}},"name":null,"span":"(2:18)-(2:20)","tag":"single"}],"span":"(2:18)-(2:20)"},"span":"(2:8)-(2:21)","tag":"subscript"}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(3:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: (features count: [:f | f class = FFEESOPEMemberAccess]) equals: 1.
+
+	writeFeature := features detect: [:f | f class = FFEESOPEMemberAccess and: [f lineNumber = 2]].
+	self assert: writeFeature baseName equals: 'lb'.
+	self assert: writeFeature memberName equals: 'bstatu'.
+	self assert: writeFeature index equals: 'ibk'.
+	self assert: writeFeature accessKind equals: #write.
+]
+
+{ #category : 'tests' }
+FortranFeatureExtractorTest >> testESOPEStringMemberAccess [
+	"       subroutine foo
+       x = ur.uname
+       end
+"
+
+	| features stringFeature |
+	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"label":null,"span":"(2:8)-(2:19)","statement":{"anno":[],"expression":{"anno":[],"expression":{"anno":[],"span":"(2:12)-(2:13)","tag":"value","value":{"contents":"ur","tag":"variable"}},"field":{"anno":[],"span":"(2:15)-(2:19)","tag":"value","value":{"contents":"uname","tag":"variable"}},"span":"(2:12)-(2:19)","tag":"deref"},"span":"(2:8)-(2:19)","tag":"assign_expression","target":{"anno":[],"span":"(2:8)-(2:8)","tag":"value","value":{"contents":"x","tag":"variable"}}},"tag":"statement"}],"name":"foo","options":[null,null],"span":"(1:8)-(3:10)","subprograms":null,"tag":"subroutine"}]}'.
+
+	self assert: (features count: [:f | f class = FFEESOPEMemberAccess]) equals: 1.
+
+	stringFeature := features detect: [:f | f class = FFEESOPEMemberAccess and: [f lineNumber = 2]].
+	self assert: stringFeature baseName equals: 'ur'.
+	self assert: stringFeature memberName equals: 'uname'.
+	self assert: stringFeature index isNil.
+	self assert: stringFeature accessKind equals: #read.
+
+]
+
+{ #category : 'tests' }
 FortranFeatureExtractorTest >> testExponentiationExpression [
 	"       subroutine foo
        integer x
@@ -618,16 +699,14 @@ c@_    segact, lb
        end
 "
 
-	| features seginiFeature segactInstrFeature segactObsoleteFeature |
+	| features seginiFeature segactInstrFeature |
 	features := self visitJsonCode: '{"meta":{"miVersion":"fortran77","miFilename":"test.f"},"program_units":[{"anno":[],"arguments":null,"blocks":[{"anno":[],"comment":"@_    segini, bk","span":"(2:1)-(2:19)","tag":"comment"},{"anno":[],"comment":"@_    segact, lb","span":"(3:1)-(3:19)","tag":"comment"}],"name":"foo","options":[null,null],"span":"(1:8)-(4:10)","subprograms":null,"tag":"subroutine"}]}'.
 
 	seginiFeature := features detect: [:f | f class = FFESegmentInstruction and: [f lineNumber = 2]].
 	self assert: seginiFeature invokedSegmentFunctionName equals: 'segini'.
 
-	"segact must count both as an obsolete function and as a segment instruction (additive)"
-	segactObsoleteFeature := features detect: [:f | f class = FFEObsoleteFunction and: [f lineNumber = 3]].
 	segactInstrFeature := features detect: [:f | f class = FFESegmentInstruction and: [f lineNumber = 3]].
-	self assert: segactObsoleteFeature obsoleteFunctionName equals: 'segact'.
+	
 	self assert: segactInstrFeature invokedSegmentFunctionName equals: 'segact'.
 
 	self assert: (features count: [:f | f class = FFESegmentInstruction]) equals: 2.
