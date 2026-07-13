@@ -23,6 +23,79 @@ Class {
 }
 
 { #category : 'private' }
+FortranFeatureExtractor class >> collectStringLeaves: aStructure [
+	aStructure isString ifTrue: [^ OrderedCollection with: aStructure].
+	(aStructure isKindOf: Collection) ifFalse: [^ OrderedCollection new].
+	^ aStructure inject: OrderedCollection new into: [:acc :each | acc addAll: (self collectStringLeaves: each); yourself]
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor class >> csvValueOf: aValue named: fieldName [
+	aValue ifNil: [^ ''].
+	fieldName = #arguments ifTrue: [^ self flattenArguments: aValue].
+	^ aValue asString
+]
+
+{ #category : 'batch' }
+FortranFeatureExtractor class >> extractFeaturesFromJsonFilesIn: aFolderPathString [
+	"Run the feature extractor over every .json file in aFolderPathString, write the
+	 combined results as a wide, analysis-ready 'features.csv' in that same folder
+	 (opens directly in Excel), and answer the sorted OrderedCollection of features."
+
+	| folder allFeatures extraFields header |
+	folder := aFolderPathString asFileReference.
+	allFeatures := OrderedCollection new.
+	folder files select: [:f | f extension = 'json'] thenDo: [:jsonFile |
+		| visitor json |
+		json := NeoJSONReader fromString: jsonFile contents.
+		visitor := self new.
+		visitor visitProgramFile: json.
+		allFeatures addAll: visitor features].
+	allFeatures := allFeatures asSortedCollection: [:a :b |
+		a filename = b filename
+			ifTrue: [a lineNumber <= b lineNumber]
+			ifFalse: [a filename <= b filename]].
+
+	extraFields := (FFEAbstractFeature allSubclasses gather: [:c | c instVarNames]) asSet asArray sorted.
+
+	header := #('class' 'sourceFile' 'filename' 'lineNumber') , extraFields.
+	(folder / 'features.csv') writeStreamDo: [:stream |
+		| writer |
+		writer := NeoCSVWriter on: stream.
+		writer nextPut: header.
+		allFeatures do: [:feature |
+			| row |
+			row := OrderedCollection new.
+			row
+				add: feature class name;
+				add: feature filename asFileReference basename;
+				add: feature filename;
+				add: feature lineNumber.
+			extraFields do: [:fieldName |
+				row add: ((feature class instVarNames includes: fieldName)
+					ifTrue: [self csvValueOf: (feature instVarNamed: fieldName) named: fieldName]
+					ifFalse: [''])].
+			writer nextPut: row asArray]].
+
+	^ allFeatures
+]
+
+{ #category : 'private' }
+FortranFeatureExtractor class >> flattenArguments: anArgumentsArray [
+	"anArgumentsArray is a collection of entries shaped like {span. {span. value}},
+	 value recursively either a String leaf or another such nested structure.
+	 Answer a readable comma-joined string, e.g. 'lib, 1'."
+
+	| perArgumentStrings |
+	perArgumentStrings := (anArgumentsArray collect: [:entry |
+		| leaves |
+		leaves := self collectStringLeaves: entry.
+		leaves isEmpty ifTrue: [''] ifFalse: [leaves fold: [:a :b | a, '.', b]]])
+		reject: [:s | s isEmpty].
+	^ perArgumentStrings isEmpty ifTrue: [''] ifFalse: [perArgumentStrings fold: [:a :b | a, ', ', b]]
+]
+
+{ #category : 'private' }
 FortranFeatureExtractor >> controlFlowFeatureNamed: aName atLine: aLineNumber [
 	^ FFEControFlowStatement new
 		controFlowStatementName: aName;
